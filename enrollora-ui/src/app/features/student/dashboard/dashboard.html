@@ -1,3 +1,4 @@
+
 <div class="dashboard-page">
   <div class="dashboard-heading">
     <div>
@@ -95,8 +96,8 @@
                 </div>
                 <span
                   class="status-badge"
-                  [class.active]="enrollment.status === 1"
-                  [class.cancelled]="enrollment.status !== 1"
+                  [class.active]="enrollment.status === 0"
+                  [class.cancelled]="enrollment.status === 1"
                 >
                   {{ statusLabel(enrollment.status) }}
                 </span>
