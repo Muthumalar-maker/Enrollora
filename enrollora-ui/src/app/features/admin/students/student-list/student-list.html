@@ -1,12 +1,173 @@
 <div class="students-page">
   <div class="page-heading">
-    <div>
-      <h2>Students</h2>
-      <p>Manage student registrations and approvals.</p>
+  <div>
+    <h2>Students</h2>
+    <p>Manage student registrations and approvals.</p>
+  </div>
+
+  <div class="heading-actions">
+    <div class="student-count">
+      Total Students: {{ totalRecords }}
     </div>
 
-    <div class="student-count">Total Students: {{ totalRecords }}</div>
+    <button
+      type="button"
+      class="btn-add-student"
+      (click)="openAddStudentModal()">
+      + Add Student
+    </button>
   </div>
+</div>
+
+  
+<!-- Add Student Modal -->
+@if (isAddModalOpen) {
+  <div class="student-modal-backdrop">
+    <div class="student-modal">
+
+      <div class="student-modal-header">
+        <div>
+          <span class="modal-eyebrow">STUDENT MANAGEMENT</span>
+          <h2>Add New Student</h2>
+          <p>Enter the student's details to create an account.</p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeAddStudentModal()">
+          &times;
+        </button>
+      </div>
+
+      <form
+        [formGroup]="addStudentForm"
+        (ngSubmit)="addStudent()">
+
+        <div class="student-modal-body">
+
+          @if (addErrorMessage) {
+            <div class="form-error">
+              {{ addErrorMessage }}
+            </div>
+          }
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input
+              type="text"
+              formControlName="name"
+              placeholder="Enter student name">
+
+            @if (addStudentForm.get('name')?.touched &&
+                 addStudentForm.get('name')?.invalid) {
+              <small class="field-error">Name is required.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              formControlName="email"
+              placeholder="Enter email address">
+
+            @if (addStudentForm.get('email')?.touched &&
+                 addStudentForm.get('email')?.invalid) {
+              <small class="field-error">
+                Enter a valid email address.
+              </small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              formControlName="password"
+              placeholder="Minimum 8 characters">
+
+            @if (addStudentForm.get('password')?.touched &&
+                 addStudentForm.get('password')?.invalid) {
+              <small class="field-error">
+                Password must contain at least 8 characters.
+              </small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Department</label>
+            <input
+              type="text"
+              formControlName="department"
+              placeholder="Example: Computer Science">
+
+            @if (addStudentForm.get('department')?.touched &&
+                 addStudentForm.get('department')?.invalid) {
+              <small class="field-error">Department is required.</small>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Age</label>
+              <input
+                type="number"
+                formControlName="age"
+                min="17"
+                max="60">
+
+              @if (addStudentForm.get('age')?.touched &&
+                   addStudentForm.get('age')?.invalid) {
+                <small class="field-error">Age must be 17–60.</small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>CGPA</label>
+              <input
+                type="number"
+                formControlName="cgpa"
+                min="0"
+                max="10"
+                step="0.01">
+
+              @if (addStudentForm.get('cgpa')?.touched &&
+                   addStudentForm.get('cgpa')?.invalid) {
+                <small class="field-error">CGPA must be 0–10.</small>
+              }
+            </div>
+          </div>
+
+          <p class="form-info">
+            <strong>Note:</strong> Newly added students will receive
+            Pending status and must be approved by the administrator.
+          </p>
+
+        </div>
+
+        <div class="student-modal-footer">
+          <button
+            type="button"
+            class="btn-close-modal"
+            [disabled]="isAddingStudent"
+            (click)="closeAddStudentModal()">
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="btn-add-student"
+            [disabled]="isAddingStudent">
+            {{ isAddingStudent ? 'Adding...' : 'Add Student' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}
+
 
   @if (isLoading) {
     <div class="loading-state">

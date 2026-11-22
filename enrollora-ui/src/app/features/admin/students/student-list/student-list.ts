@@ -1,10 +1,11 @@
+
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { StudentService } from '../student.service';
 import { StudentResponse, StudentFilter, UpdateStudentRequest } from '../student.models';
-import { FormsModule } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { RegisterStudentRequest } from '../../../../core/auth/auth.models';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-student-list',
@@ -15,6 +16,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 })
 export class StudentList implements OnInit {
   private studentService = inject(StudentService);
+  private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
   students: StudentResponse[] = [];
@@ -30,6 +32,42 @@ export class StudentList implements OnInit {
   selectedStudent: StudentResponse | null = null;
   isDetailsLoading = false;
   detailsError = '';
+
+  // Add Student
+  isAddModalOpen = false;
+  isAddingStudent = false;
+  addSuccessMessage = '';
+  addErrorMessage = '';
+
+  addStudentForm = new FormGroup({
+    name: new FormControl('', [
+      Validators.required,
+      Validators.maxLength(120)
+    ]),
+    email: new FormControl('', [
+      Validators.required,
+      Validators.email,
+      Validators.maxLength(256)
+    ]),
+    password: new FormControl('', [
+      Validators.required,
+      Validators.minLength(8)
+    ]),
+    department: new FormControl('', [
+      Validators.required,
+      Validators.maxLength(100)
+    ]),
+    age: new FormControl(18, [
+      Validators.required,
+      Validators.min(17),
+      Validators.max(60)
+    ]),
+    cgpa: new FormControl(0, [
+      Validators.required,
+      Validators.min(0),
+      Validators.max(10)
+    ]),
+  });
 
   filters: StudentFilter = {
     search: '',
@@ -59,11 +97,96 @@ export class StudentList implements OnInit {
         this.isLoading = false;
         this.cdr.markForCheck();
       },
-
       error: (error) => {
         console.error('Failed to load students:', error);
         this.errorMessage = 'Unable to load students.';
         this.isLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  // Open Add Student Modal
+  openAddStudentModal(): void {
+    this.addStudentForm.reset({
+      name: '',
+      email: '',
+      password: '',
+      department: '',
+      age: 18,
+      cgpa: 0,
+    });
+
+    this.addSuccessMessage = '';
+    this.addErrorMessage = '';
+    this.isAddModalOpen = true;
+  }
+
+  // Close Add Student Modal
+  closeAddStudentModal(): void {
+    if (this.isAddingStudent) {
+      return;
+    }
+
+    this.isAddModalOpen = false;
+    this.addSuccessMessage = '';
+    this.addErrorMessage = '';
+  }
+
+  // Save New Student
+  addStudent(): void {
+    if (this.addStudentForm.invalid || this.isAddingStudent) {
+      this.addStudentForm.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.addStudentForm.getRawValue();
+
+    const request: RegisterStudentRequest = {
+      name: formValue.name!.trim(),
+      email: formValue.email!.trim(),
+      password: formValue.password!,
+      department: formValue.department!.trim(),
+      age: Number(formValue.age),
+      cgpa: Number(formValue.cgpa),
+    };
+
+    this.isAddingStudent = true;
+    this.addErrorMessage = '';
+    this.addSuccessMessage = '';
+
+    this.authService.register(request).subscribe({
+      next: (response) => {
+        this.isAddingStudent = false;
+        this.addSuccessMessage = response.message;
+
+        this.pageNumber = 1;
+        this.isAddModalOpen = false;
+
+        this.loadStudents();
+        this.cdr.markForCheck();
+
+        alert(response.message);
+      },
+      error: (error) => {
+        console.error('Failed to add student:', error);
+
+        this.isAddingStudent = false;
+
+        if (error.status === 409) {
+          this.addErrorMessage = 'An account with this email already exists.';
+        } else if (error.status === 400) {
+          this.addErrorMessage =
+            error.error?.detail ||
+            error.error?.message ||
+            'Please check the entered student details.';
+        } else {
+          this.addErrorMessage =
+            error.error?.detail ||
+            error.error?.message ||
+            'Unable to add student. Please try again.';
+        }
+
         this.cdr.markForCheck();
       },
     });
@@ -168,13 +291,9 @@ export class StudentList implements OnInit {
 
   studentForm = new FormGroup({
     name: new FormControl('', Validators.required),
-
     email: new FormControl('', [Validators.required, Validators.email]),
-
     department: new FormControl('', Validators.required),
-
     age: new FormControl(18, [Validators.required, Validators.min(17), Validators.max(60)]),
-
     cgpa: new FormControl(0, [Validators.required, Validators.min(0), Validators.max(10)]),
   });
 
@@ -228,7 +347,6 @@ export class StudentList implements OnInit {
     this.studentService.updateStudent(this.editingStudentId, studentData).subscribe({
       next: (updatedStudent) => {
         console.log('Student updated:', updatedStudent);
-
         this.closeEditModal();
         this.loadStudents();
       },

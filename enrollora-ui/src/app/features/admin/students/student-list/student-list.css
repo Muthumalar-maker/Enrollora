@@ -3,6 +3,170 @@
    STUDENT MANAGEMENT
 ========================================== */
 
+
+/* ========================================
+   ADD STUDENT FEATURE
+======================================== */
+
+/* Heading Actions */
+.heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Add Student Button */
+.btn-add-student {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.18);
+}
+
+.btn-add-student:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 16px rgba(124, 58, 237, 0.25);
+}
+
+.btn-add-student:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Add Student Form */
+.student-modal form {
+  width: 100%;
+}
+
+.student-modal .student-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.student-modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.student-modal .form-group label {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.student-modal .form-group input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-modal .form-group input:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+.student-modal .form-group input::placeholder {
+  color: #9ca3af;
+}
+
+/* Age and CGPA */
+.student-modal .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* Validation Messages */
+.field-error {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.form-error {
+  padding: 11px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.form-info {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #ddd6fe;
+  border-radius: 9px;
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Modal Footer */
+.student-modal .student-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px;
+  border-top: 1px solid #f1f1f5;
+}
+
+/* Cancel Button */
+.student-modal .btn-close-modal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+  .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .heading-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .student-modal .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .student-modal .student-modal-footer {
+    padding: 15px;
+  }
+
+  .btn-add-student {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+}
+
+
 :host {
   display: block;
   color: #29213f;
