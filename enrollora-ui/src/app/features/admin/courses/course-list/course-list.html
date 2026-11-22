@@ -35,16 +35,12 @@
 
     <div class="summary-card">
       <h3>Active Courses</h3>
-      <p>
-        {{ courses().filter(course => course.isActive).length }}
-      </p>
+      <p>{{ courses().filter(course => course.isActive).length }}</p>
     </div>
 
     <div class="summary-card">
       <h3>Inactive Courses</h3>
-      <p>
-        {{ courses().filter(course => !course.isActive).length }}
-      </p>
+      <p>{{ courses().filter(course => !course.isActive).length }}</p>
     </div>
   </div>
 
@@ -60,19 +56,20 @@
           <th>Capacity</th>
           <th>Available Seats</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
 
       <tbody>
         @if (isLoading()) {
           <tr>
-            <td colspan="8" class="empty-message">
+            <td colspan="9" class="empty-message">
               Loading courses...
             </td>
           </tr>
         } @else if (courses().length === 0) {
           <tr>
-            <td colspan="8" class="empty-message">
+            <td colspan="9" class="empty-message">
               No courses found. Click Add New Course to create one.
             </td>
           </tr>
@@ -80,17 +77,55 @@
           @for (course of courses(); track course.courseId) {
             <tr>
               <td>{{ course.courseId }}</td>
+
               <td>{{ course.courseName }}</td>
+
               <td>{{ course.duration }}</td>
-              <td>{{ course.fees | currency:'INR':'symbol':'1.0-2' }}</td>
-              <td>{{ course.enrolledCount }}</td>
-              <td>{{ course.capacity }}</td>
-              <td>{{ course.availableSeats }}</td>
+
               <td>
-                <span [class.active-status]="course.isActive"
-                      [class.inactive-status]="!course.isActive">
+                {{ course.fees | currency:'INR':'symbol':'1.0-2' }}
+              </td>
+
+              <td>{{ course.enrolledCount }}</td>
+
+              <td>{{ course.capacity }}</td>
+
+              <td>{{ course.availableSeats }}</td>
+
+              <td>
+                <span
+                  [class.active-status]="course.isActive"
+                  [class.inactive-status]="!course.isActive">
                   {{ course.isActive ? 'Active' : 'Inactive' }}
                 </span>
+              </td>
+
+              <td class="action-buttons">
+                <button
+                  type="button"
+                  class="btn-edit"
+                  (click)="openEditCourseForm(course)"
+                  [disabled]="isSaving() || isLoading()">
+                  Edit
+                </button>
+
+                @if (course.isActive) {
+                  <button
+                    type="button"
+                    class="btn-delete"
+                    (click)="deactivateCourse(course)"
+                    [disabled]="isSaving() || isLoading()">
+                    Deactivate
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-activate"
+                    (click)="activateCourse(course)"
+                    [disabled]="isSaving() || isLoading()">
+                    Activate
+                  </button>
+                }
               </td>
             </tr>
           }
@@ -127,8 +162,15 @@
 
       <div class="modal-header">
         <div>
-          <h2>Add New Course</h2>
-          <p>Enter the course details below.</p>
+          <h2>
+            {{ editingCourseId() !== null ? 'Edit Course' : 'Add New Course' }}
+          </h2>
+
+          <p>
+            {{ editingCourseId() !== null
+              ? 'Update the course details below.'
+              : 'Enter the course details below.' }}
+          </p>
         </div>
 
         <button
@@ -150,6 +192,7 @@
 
         <div class="form-group">
           <label for="courseName">Course Name</label>
+
           <input
             id="courseName"
             type="text"
@@ -162,6 +205,7 @@
 
         <div class="form-group">
           <label for="duration">Duration</label>
+
           <input
             id="duration"
             type="text"
@@ -173,8 +217,10 @@
         </div>
 
         <div class="form-row">
+
           <div class="form-group">
             <label for="fees">Course Fees (₹)</label>
+
             <input
               id="fees"
               type="number"
@@ -188,6 +234,7 @@
 
           <div class="form-group">
             <label for="capacity">Student Capacity</label>
+
             <input
               id="capacity"
               type="number"
@@ -198,6 +245,7 @@
               step="1"
               required>
           </div>
+
         </div>
 
         <div class="form-group checkbox-group">
@@ -211,6 +259,7 @@
         </div>
 
         <div class="modal-actions">
+
           <button
             type="button"
             class="btn-cancel"
@@ -223,8 +272,13 @@
             type="submit"
             class="btn-submit"
             [disabled]="courseForm.invalid || isSaving()">
-            {{ isSaving() ? 'Creating...' : 'Create Course' }}
+            @if (isSaving()) {
+              Saving...
+            } @else {
+              {{ editingCourseId() !== null ? 'Update Course' : 'Create Course' }}
+            }
           </button>
+
         </div>
 
       </form>

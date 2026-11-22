@@ -17,21 +17,19 @@ import { CourseResponse, SaveCourseRequest } from '../course.models';
 export class CourseListComponent implements OnInit {
   private courseService = inject(CourseService);
 
-  // Course list
   courses = signal<CourseResponse[]>([]);
 
-  // Loading and error states
   isLoading = signal(false);
   isSaving = signal(false);
+
   errorMessage = signal('');
   successMessage = signal('');
 
-  // Add course form
   showAddForm = signal(false);
+  editingCourseId = signal<number | null>(null);
 
   newCourse: SaveCourseRequest = this.getEmptyCourse();
 
-  // Pagination
   pageNumber = signal(1);
   pageSize = signal(10);
 
@@ -42,7 +40,6 @@ export class CourseListComponent implements OnInit {
     this.loadCourses();
   }
 
-  // Empty course form
   private getEmptyCourse(): SaveCourseRequest {
     return {
       courseName: '',
@@ -53,7 +50,6 @@ export class CourseListComponent implements OnInit {
     };
   }
 
-  // Load courses from backend
   loadCourses(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
@@ -65,41 +61,66 @@ export class CourseListComponent implements OnInit {
           this.courses.set(response.items);
           this.totalRecords.set(response.totalRecords);
           this.totalPages.set(response.totalPages);
-
           this.isLoading.set(false);
         },
-
         error: (error: HttpErrorResponse) => {
           console.error('Error loading courses:', error);
-
           this.errorMessage.set(
-            this.getErrorMessage(error, 'Unable to load courses.'),
+            this.getErrorMessage(error, 'Unable to load courses.')
           );
-
           this.isLoading.set(false);
         },
       });
   }
 
-  // Open Add Course form
   openAddCourseForm(): void {
     this.newCourse = this.getEmptyCourse();
+    this.editingCourseId.set(null);
     this.errorMessage.set('');
     this.successMessage.set('');
     this.showAddForm.set(true);
   }
 
-  // Close Add Course form
+  openEditCourseForm(course: CourseResponse): void {
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.isSaving.set(true);
+
+    this.courseService.getCourseById(course.courseId).subscribe({
+      next: (response) => {
+        this.newCourse = {
+          courseName: response.courseName,
+          duration: response.duration,
+          fees: response.fees,
+          capacity: response.capacity,
+          isActive: response.isActive,
+        };
+
+        this.editingCourseId.set(response.courseId);
+        this.showAddForm.set(true);
+        this.isSaving.set(false);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage.set(
+          this.getErrorMessage(error, 'Unable to load course details.')
+        );
+        this.isSaving.set(false);
+      },
+    });
+  }
+
   closeAddCourseForm(): void {
     if (this.isSaving()) {
       return;
     }
 
     this.showAddForm.set(false);
+    this.editingCourseId.set(null);
     this.newCourse = this.getEmptyCourse();
+    this.errorMessage.set('');
   }
 
-  // Create a new course
   addCourse(): void {
     if (this.isSaving()) {
       return;
@@ -125,7 +146,7 @@ export class CourseListComponent implements OnInit {
       request.capacity < 1
     ) {
       this.errorMessage.set(
-        'Enter valid fees and a capacity of at least 1.',
+        'Enter valid fees and a capacity of at least 1.'
       );
       return;
     }
@@ -133,36 +154,131 @@ export class CourseListComponent implements OnInit {
     this.isSaving.set(true);
     this.errorMessage.set('');
 
-    this.courseService.createCourse(request).subscribe({
-      next: (response) => {
-        console.log('Course created successfully:', response);
+    const courseId = this.editingCourseId();
 
+    if (courseId !== null) {
+      this.courseService.updateCourse(courseId, request).subscribe({
+        next: (response) => {
+          this.finishSave(
+            `${response.courseName} was updated successfully.`
+          );
+        },
+        error: (error: HttpErrorResponse) => {
+          this.handleSaveError(error, 'Unable to update course.');
+        },
+      });
+    } else {
+      this.courseService.createCourse(request).subscribe({
+        next: (response) => {
+          this.pageNumber.set(1);
+          this.finishSave(
+            `${response.courseName} was created successfully.`
+          );
+        },
+        error: (error: HttpErrorResponse) => {
+          this.handleSaveError(error, 'Unable to create course.');
+        },
+      });
+    }
+  }
+
+  private finishSave(message: string): void {
+    this.isSaving.set(false);
+    this.showAddForm.set(false);
+    this.editingCourseId.set(null);
+    this.newCourse = this.getEmptyCourse();
+    this.successMessage.set(message);
+    this.loadCourses();
+  }
+
+  private handleSaveError(
+    error: HttpErrorResponse,
+    fallback: string
+  ): void {
+    console.error('Course save error:', error);
+
+    this.errorMessage.set(this.getErrorMessage(error, fallback));
+    this.isSaving.set(false);
+  }
+
+  deactivateCourse(course: CourseResponse): void {
+    if (this.isSaving()) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to deactivate "${course.courseName}"?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.courseService.deactivateCourse(course.courseId).subscribe({
+      next: () => {
         this.isSaving.set(false);
-        this.showAddForm.set(false);
-
-        this.newCourse = this.getEmptyCourse();
-
         this.successMessage.set(
-          `${response.courseName} was created successfully.`,
+          `${course.courseName} was deactivated successfully.`
         );
-
-        this.pageNumber.set(1);
         this.loadCourses();
       },
-
       error: (error: HttpErrorResponse) => {
-        console.error('Error creating course:', error);
-
+        console.error('Course deactivation error:', error);
         this.errorMessage.set(
-          this.getErrorMessage(error, 'Unable to create course.'),
+          this.getErrorMessage(error, 'Unable to deactivate course.')
         );
-
         this.isSaving.set(false);
       },
     });
   }
 
-  // Navigate to next page
+  activateCourse(course: CourseResponse): void {
+    if (this.isSaving()) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to activate "${course.courseName}"?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const request: SaveCourseRequest = {
+      courseName: course.courseName,
+      duration: course.duration,
+      fees: course.fees,
+      capacity: course.capacity,
+      isActive: true,
+    };
+
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.courseService.updateCourse(course.courseId, request).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.successMessage.set(
+          `${course.courseName} was activated successfully.`
+        );
+        this.loadCourses();
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Course activation error:', error);
+        this.errorMessage.set(
+          this.getErrorMessage(error, 'Unable to activate course.')
+        );
+        this.isSaving.set(false);
+      },
+    });
+  }
+
   nextPage(): void {
     if (this.pageNumber() < this.totalPages()) {
       this.pageNumber.update((page) => page + 1);
@@ -170,7 +286,6 @@ export class CourseListComponent implements OnInit {
     }
   }
 
-  // Navigate to previous page
   previousPage(): void {
     if (this.pageNumber() > 1) {
       this.pageNumber.update((page) => page - 1);
@@ -178,10 +293,9 @@ export class CourseListComponent implements OnInit {
     }
   }
 
-  // Handle API errors
   private getErrorMessage(
     error: HttpErrorResponse,
-    fallback: string,
+    fallback: string
   ): string {
     const body = error.error;
 
