@@ -1,3 +1,4 @@
+
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -5,6 +6,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PagedResult } from '../../shared/models/paged-result.model';
 import {
+  AdminCreateEnrollmentRequest,
   CreateEnrollmentRequest,
   EnrollmentFilter,
   EnrollmentResponse,
@@ -71,6 +73,15 @@ export class EnrollmentService {
     return this.http.post<EnrollmentResponse>(this.apiUrl, request);
   }
 
+  createAdminEnrollment(
+    request: AdminCreateEnrollmentRequest,
+  ): Observable<EnrollmentResponse> {
+    return this.http.post<EnrollmentResponse>(
+      `${this.apiUrl}/admin`,
+      request,
+    );
+  }
+
   private buildParams(
     pageNumber: number,
     pageSize: number,
@@ -83,15 +94,19 @@ export class EnrollmentService {
     if (filters?.search) {
       params = params.set('search', filters.search);
     }
+
     if (filters?.courseId != null) {
       params = params.set('courseId', filters.courseId);
     }
+
     if (filters?.status != null) {
       params = params.set('status', filters.status);
     }
+
     if (filters?.fromDate) {
       params = params.set('fromDate', filters.fromDate);
     }
+
     if (filters?.toDate) {
       params = params.set('toDate', filters.toDate);
     }

@@ -15,6 +15,11 @@ export interface CreateEnrollmentRequest {
   courseId: number;
 }
 
+export interface AdminCreateEnrollmentRequest {
+  studentId: number;
+  courseId: number;
+}
+
 export interface EnrollmentFilter {
   search?: string;
   courseId?: number | null;
