@@ -44,6 +44,22 @@ public sealed class EnrollmentsController(IEnrollmentService service) : Controll
         return CreatedAtAction(nameof(GetMine), result);
     }
 
+    [HttpPost("admin")]
+[Authorize(Roles = "Administrator")]
+public async Task<IActionResult> CreateForStudent(
+    AdminCreateEnrollmentRequest request, CancellationToken ct)
+{
+    var result = await service.CreateAsync(
+        request.StudentId,
+        request.CourseId,
+        ct);
+
+    return CreatedAtAction(
+        nameof(GetForStudent),
+        new { studentId = request.StudentId },
+        result);
+}
+
     private int CurrentStudentId() =>
         int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new UnauthorizedAccessException("Student identity is missing."));

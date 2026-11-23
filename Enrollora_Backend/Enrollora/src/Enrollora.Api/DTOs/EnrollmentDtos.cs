@@ -1,4 +1,5 @@
 using Enrollora.Api.Models;
+using Enrollora.Api.DTOs;
 
 namespace Enrollora.Api.DTOs;
 
@@ -13,6 +14,14 @@ public sealed class EnrollmentQuery : PaginationQuery
 
 public sealed class CreateEnrollmentRequest
 {
+     
+    public int CourseId { get; set; }
+}
+
+public sealed class AdminCreateEnrollmentRequest
+{
+    public int StudentId { get; set; }
+
     public int CourseId { get; set; }
 }
 
