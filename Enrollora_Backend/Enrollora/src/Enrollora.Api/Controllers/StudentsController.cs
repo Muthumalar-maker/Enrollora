@@ -1,3 +1,4 @@
+
 using System.Security.Claims;
 using Enrollora.Api.DTOs;
 using Enrollora.Api.Models;
@@ -54,6 +55,17 @@ public sealed class StudentsController(IStudentService service) : ControllerBase
     {
         await service.ReviewAsync(id, StudentStatus.Rejected, ct);
         return Ok(new ApiMessage("Student registration rejected."));
+    }
+
+    [HttpPut("{id:int}/reset-password")]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> ResetPassword(
+        int id,
+        ResetStudentPasswordRequest request,
+        CancellationToken ct)
+    {
+        await service.ResetPasswordAsync(id, request, ct);
+        return Ok(new ApiMessage("Student password reset successfully."));
     }
 
     [HttpDelete("{id:int}")]

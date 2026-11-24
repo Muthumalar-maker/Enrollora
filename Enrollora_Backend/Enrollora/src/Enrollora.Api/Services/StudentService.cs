@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Enrollora.Api.Services;
 
-public sealed class StudentService(IRepository<Student> students) : IStudentService
+public sealed class StudentService(
+    IRepository<Student> students,
+    IPasswordHasher hasher) : IStudentService
 {
     public async Task<PagedResult<StudentResponse>> GetStudentsAsync(StudentQuery query, CancellationToken ct)
     {
@@ -82,6 +84,19 @@ public sealed class StudentService(IRepository<Student> students) : IStudentServ
         students.Update(student);
         await students.SaveChangesAsync(ct);
     }
+
+    public async Task ResetPasswordAsync(
+    int id,
+    ResetStudentPasswordRequest request,
+    CancellationToken ct)
+{
+    var student = await FindAsync(id, ct);
+
+    student.PasswordHash = hasher.Hash(request.NewPassword);
+
+    students.Update(student);
+    await students.SaveChangesAsync(ct);
+}
 
     public async Task DeleteAsync(int id, CancellationToken ct)
     {

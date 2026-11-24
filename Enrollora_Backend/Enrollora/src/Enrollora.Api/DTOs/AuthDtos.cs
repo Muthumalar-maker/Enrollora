@@ -1,3 +1,4 @@
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Enrollora.Api.DTOs;
@@ -21,6 +22,12 @@ public sealed class RegisterStudentRequest
 
     [Range(typeof(decimal), "0", "10")]
     public decimal CGPA { get; set; }
+}
+
+public sealed class ResetStudentPasswordRequest
+{
+    [Required, MinLength(8)]
+    public string NewPassword { get; set; } = string.Empty;
 }
 
 public sealed class LoginRequest

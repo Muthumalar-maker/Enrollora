@@ -10,6 +10,9 @@ import {
   CreateEnrollmentRequest,
   EnrollmentFilter,
   EnrollmentResponse,
+  CancellationPagedResult,
+  CancellationResponse,
+  CreateCancellationRequest,
 } from './enrollment.models';
 
 @Injectable({
@@ -18,6 +21,30 @@ import {
 export class EnrollmentService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/enrollments`;
+
+  getMyCancellationRequests(
+    pageNumber = 1,
+    pageSize = 100,
+  ): Observable<CancellationPagedResult> {
+    const params = new HttpParams()
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+
+    return this.http.get<CancellationPagedResult>(
+      `${environment.apiUrl}/cancellation-requests/my`,
+      { params },
+    );
+  }
+
+  createCancellationRequest(
+    enrollmentId: number,
+    request: CreateCancellationRequest,
+  ): Observable<CancellationResponse> {
+    return this.http.post<CancellationResponse>(
+      `${this.apiUrl}/${enrollmentId}/cancellation-request`,
+      request,
+    );
+  }
 
   getEnrollments(
     pageNumber = 1,

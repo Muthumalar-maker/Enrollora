@@ -28,6 +28,10 @@ public interface IStudentService
     Task<StudentResponse> UpdateMeAsync(int studentId, UpdateStudentRequest request, CancellationToken ct);
     Task<StudentResponse> UpdateAsync(int id, UpdateStudentRequest request, CancellationToken ct);
     Task ReviewAsync(int id, StudentStatus status, CancellationToken ct);
+    Task ResetPasswordAsync(
+    int id,
+    ResetStudentPasswordRequest request,
+    CancellationToken ct);
     Task DeleteAsync(int id, CancellationToken ct);
 }
 
