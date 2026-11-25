@@ -47,5 +47,14 @@ export interface CancellationResponse {
   adminRemarks: string | null;
 }
 
+export interface CancellationFilter {
+  search?: string;
+  status?: number | null;
+}
+
+export interface ReviewCancellationRequest {
+  adminRemarks?: string | null;
+}
+
 export type CancellationPagedResult = PagedResult<CancellationResponse>;
 export type EnrollmentPagedResult = PagedResult<EnrollmentResponse>;

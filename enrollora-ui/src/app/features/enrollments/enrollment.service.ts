@@ -13,6 +13,8 @@ import {
   CancellationPagedResult,
   CancellationResponse,
   CreateCancellationRequest,
+  CancellationFilter,
+  ReviewCancellationRequest,
 } from './enrollment.models';
 
 @Injectable({
@@ -93,6 +95,40 @@ export class EnrollmentService {
     return this.http.get<PagedResult<EnrollmentResponse>>(
       `${this.apiUrl}/course/${courseId}`,
       { params },
+    );
+  }
+
+  getCancellationRequests(
+  pageNumber = 1,
+  pageSize = 10,
+  filters?: CancellationFilter,
+): Observable<CancellationPagedResult> {
+  let params = new HttpParams()
+    .set('pageNumber', pageNumber)
+    .set('pageSize', pageSize);
+
+  if (filters?.search?.trim()) {
+    params = params.set('search', filters.search.trim());
+  }
+
+  if (filters?.status !== undefined && filters?.status !== null) {
+    params = params.set('status', filters.status);
+  }
+
+  return this.http.get<CancellationPagedResult>(
+    `${environment.apiUrl}/cancellation-requests`,
+    { params },
+  );
+}
+
+reviewCancellationRequest(
+    requestId: number,
+    action: 'approve' | 'reject',
+    request: ReviewCancellationRequest,
+  ): Observable<CancellationResponse> {
+    return this.http.put<CancellationResponse>(
+      `${environment.apiUrl}/cancellation-requests/${requestId}/${action}`,
+      request,
     );
   }
 
